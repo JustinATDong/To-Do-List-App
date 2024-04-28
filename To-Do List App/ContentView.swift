@@ -8,17 +8,41 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var tasks: [String] = []
+
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("To-Do List")
+                .font(.title)
+                .fontWeight(.bold)
+                .padding(.bottom, 20)
+
+            List {
+                ForEach(tasks, id: \.self) { task in
+                    Text(task)
+                }
+            }
+
+            Spacer()
+
+            Button(action: {
+                // Add a new task
+                tasks.append("New Task")
+            }) {
+                Text("Add Task")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding(.bottom, 20)
         }
         .padding()
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
