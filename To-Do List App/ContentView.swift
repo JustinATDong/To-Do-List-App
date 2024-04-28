@@ -8,41 +8,118 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var tasks: [String] = []
+    @State private var tasks: [Task] = []
+    @State private var newTaskName = ""
+    @State private var newTaskDueDate = Date()
+    @State private var newTaskDueTime = Date()
 
     var body: some View {
         VStack {
             Text("To-Do List")
                 .font(.title)
                 .fontWeight(.bold)
-                .padding(.bottom, 20)
+                .padding(.bottom, 10)
 
-            List {
-                ForEach(tasks, id: \.self) { task in
-                    Text(task)
+            ScrollView {
+                VStack(spacing: 15) {
+                    ForEach(tasks) { task in
+                        TaskView(task: task, toggleTaskCompletion: toggleTaskCompletion)
+                            .padding(.horizontal, 20)
+                    }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Spacer()
-
-            Button(action: {
-                // Add a new task
-                tasks.append("New Task")
-            }) {
-                Text("Add Task")
+            VStack(spacing: 10) {
+                TextField("Enter task name", text: $newTaskName)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Due Date:")
+                    DatePicker("", selection: $newTaskDueDate, displayedComponents: .date)
+                        .datePickerStyle(GraphicalDatePickerStyle())
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Due Time:")
+                    DatePicker("", selection: $newTaskDueTime, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(GraphicalDatePickerStyle())
+                }
+
+                Button(action: {
+                    // Add a new task
+                    let task = Task(name: newTaskName, dueDate: combineDateAndTime(date: newTaskDueDate, time: newTaskDueTime))
+                    tasks.append(task)
+                    // Reset fields
+                    newTaskName = ""
+                    newTaskDueDate = Date()
+                    newTaskDueTime = Date()
+                }) {
+                    Text("Add Task")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
             }
+            .padding(.horizontal, 20)
             .padding(.bottom, 20)
         }
         .padding()
+    }
+
+    func toggleTaskCompletion(_ task: Task) {
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index].isCompleted.toggle()
+        }
+    }
+
+    func combineDateAndTime(date: Date, time: Date) -> Date {
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+        return calendar.date(bySettingHour: timeComponents.hour!, minute: timeComponents.minute!, second: 0, of: calendar.date(from: dateComponents)!)!
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+    }
+}
+
+struct Task: Identifiable {
+    let id = UUID()
+    let name: String
+    var dueDate: Date
+    var isCompleted: Bool = false
+}
+
+struct TaskView: View {
+    let task: Task
+    let toggleTaskCompletion: (Task) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                Button(action: {
+                    toggleTaskCompletion(task)
+                }) {
+                    Image(systemName: task.isCompleted ? "checkmark.square" : "square")
+                        .resizable()
+                        .frame(width: 25, height: 25)
+                        .foregroundColor(task.isCompleted ? .green : .secondary)
+                }
+                Text(task.name)
+                    .font(.headline)
+            }
+            Text("Due: \(task.dueDate, style: .date) at \(task.dueDate, style: .time)")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .padding(15)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(10)
     }
 }
