@@ -5,6 +5,7 @@
 //  Created by Justin Dong on 4/27/24.
 //
 
+
 import SwiftUI
 
 struct ContentView: View {
@@ -12,10 +13,13 @@ struct ContentView: View {
     @State private var newTaskName = ""
     @State private var newTaskDueDate = Date()
     @State private var newTaskDueTime = Date()
+    @State private var scheduledDateTime: Date? = nil // Arjun Subedi 4/27/2024
+    
 
     var body: some View {
         VStack {
-            Text("To-Do List")
+           
+            Text("CasualTasks")
                 .font(.title)
                 .fontWeight(.bold)
                 .padding(.bottom, 10)
@@ -62,6 +66,26 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
+                
+                Text("Schedule Task") // Users are able to set any date and time
+                        .font(.headline)
+                        .padding(.top, 20)
+
+                DatePicker("Schedule Date and Time", selection: Binding<Date>(
+                    get: { self.scheduledDateTime ?? Date() },
+                    set: { self.scheduledDateTime = $0 }
+                ), displayedComponents: [.date, .hourAndMinute])
+
+
+                Button(action: {
+                    self.scheduleTaskExecution() // Call scheduleTaskExecution() on self
+                }) {
+                    Text("Schedule Task")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
@@ -80,6 +104,20 @@ struct ContentView: View {
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
         let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
         return calendar.date(bySettingHour: timeComponents.hour!, minute: timeComponents.minute!, second: 0, of: calendar.date(from: dateComponents)!)!
+    }
+
+    // Move scheduleTaskExecution() inside ContentView struct
+    func scheduleTaskExecution() {
+        guard let scheduledDateTime = self.scheduledDateTime else {
+            return
+        }
+
+        let timer = Timer(fire: scheduledDateTime, interval: 0, repeats: false) { _ in
+            print("Task scheduled for \(scheduledDateTime) executed")
+        }
+
+        RunLoop.current.add(timer, forMode: .common)
+        self.scheduledDateTime = nil
     }
 }
 
