@@ -11,14 +11,10 @@ import SwiftUI
 struct ContentView: View {
     @State private var tasks: [Task] = []
     @State private var newTaskName = ""
-    @State private var newTaskDueDate = Date()
-    @State private var newTaskDueTime = Date()
-    @State private var scheduledDateTime: Date? = nil // Arjun Subedi 4/27/2024
-    
+    @State private var newTaskDueDateTime = Date()
 
     var body: some View {
         VStack {
-           
             Text("CasualTasks")
                 .font(.title)
                 .fontWeight(.bold)
@@ -27,8 +23,9 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 15) {
                     ForEach(tasks) { task in
-                        TaskView(task: task, toggleTaskCompletion: toggleTaskCompletion)
-                            .padding(.horizontal, 20)
+                        if !task.isCompleted {
+                            TaskView(task: task, toggleTaskCompletion: toggleTaskCompletion)
+                        }
                     }
                 }
             }
@@ -39,26 +36,16 @@ struct ContentView: View {
                     .padding()
                     .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Due Date:")
-                    DatePicker("", selection: $newTaskDueDate, displayedComponents: .date)
-                        .datePickerStyle(GraphicalDatePickerStyle())
-                }
-
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Due Time:")
-                    DatePicker("", selection: $newTaskDueTime, displayedComponents: .hourAndMinute)
-                        .datePickerStyle(GraphicalDatePickerStyle())
-                }
+                DatePicker("Due Date and Time", selection: $newTaskDueDateTime, displayedComponents: [.date, .hourAndMinute])
+                    .datePickerStyle(GraphicalDatePickerStyle())
 
                 Button(action: {
                     // Add a new task
-                    let task = Task(name: newTaskName, dueDate: combineDateAndTime(date: newTaskDueDate, time: newTaskDueTime))
+                    let task = Task(name: newTaskName, dueDate: newTaskDueDateTime)
                     tasks.append(task)
                     // Reset fields
                     newTaskName = ""
-                    newTaskDueDate = Date()
-                    newTaskDueTime = Date()
+                    newTaskDueDateTime = Date()
                 }) {
                     Text("Add Task")
                         .padding()
@@ -66,58 +53,20 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                
-                Text("Schedule Task") // Users are able to set any date and time
-                        .font(.headline)
-                        .padding(.top, 20)
-
-                DatePicker("Schedule Date and Time", selection: Binding<Date>(
-                    get: { self.scheduledDateTime ?? Date() },
-                    set: { self.scheduledDateTime = $0 }
-                ), displayedComponents: [.date, .hourAndMinute])
-
-
-                Button(action: {
-                    self.scheduleTaskExecution() // Call scheduleTaskExecution() on self
-                }) {
-                    Text("Schedule Task")
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            .padding()
         }
-        .padding()
     }
 
     func toggleTaskCompletion(_ task: Task) {
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index].isCompleted.toggle()
+            if tasks[index].isCompleted {
+                withAnimation {
+                    tasks.remove(at: index)
+                }
+            }
         }
-    }
-
-    func combineDateAndTime(date: Date, time: Date) -> Date {
-        let calendar = Calendar.current
-        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
-        return calendar.date(bySettingHour: timeComponents.hour!, minute: timeComponents.minute!, second: 0, of: calendar.date(from: dateComponents)!)!
-    }
-
-    // Move scheduleTaskExecution() inside ContentView struct
-    func scheduleTaskExecution() {
-        guard let scheduledDateTime = self.scheduledDateTime else {
-            return
-        }
-
-        let timer = Timer(fire: scheduledDateTime, interval: 0, repeats: false) { _ in
-            print("Task scheduled for \(scheduledDateTime) executed")
-        }
-
-        RunLoop.current.add(timer, forMode: .common)
-        self.scheduledDateTime = nil
     }
 }
 
