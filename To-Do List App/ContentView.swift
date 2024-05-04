@@ -62,9 +62,9 @@ struct ContentView: View {
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index].isCompleted.toggle()
             if tasks[index].isCompleted {
-                withAnimation {
+//                withAnimation {
                     tasks.remove(at: index)
-                }
+//                }
             }
         }
     }
