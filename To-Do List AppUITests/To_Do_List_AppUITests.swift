@@ -6,30 +6,52 @@
 //
 
 import XCTest
+import SwiftUI
+@testable import To_Do_List_App
 
-final class To_Do_List_AppUITests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
-        continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+class ToDoListAppUITests: XCTestCase {
+    
+    // Properties
+    var arr: ContentView!
+    var hostingController: UIHostingController<ContentView>!
+    @State private var tasks: [Task] = []
+    
+    // Setup
+    override func setUp() {
+        super.setUp()
+        arr = ContentView(tasks: tasks) // Initialize with an empty tasks array
+        hostingController = UIHostingController(rootView: arr)
+        _ = hostingController.view // Load the view hierarchy
     }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    
+    override func tearDown() {
+        arr = nil
+        hostingController = nil
+        super.tearDown()
     }
-
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    
+    // UI Tests
+    func testAddTask() {
+        let initialTaskCount = arr.tasks.count
+        arr.newTaskName = "New Task"
+        arr.addTask()
+        
+        XCTAssertEqual(arr.tasks.count, initialTaskCount + 1)
+        XCTAssertEqual(arr.tasks.last?.name, "New Task")
     }
-
+    
+    func testTaskCompletionToggle() {
+        // Given
+        let task = Task(name: "Test Task", dueDate: Date())
+        arr.tasks = [task]
+        
+        // When
+        arr.toggleTaskCompletion(task)
+        
+        // Then
+        XCTAssertTrue(task.isCompleted)
+    }
+    
     func testLaunchPerformance() throws {
         if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
             // This measures how long it takes to launch your application.
