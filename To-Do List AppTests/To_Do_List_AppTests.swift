@@ -8,29 +8,55 @@
 import XCTest
 @testable import To_Do_List_App
 
-final class To_Do_List_AppTests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+class ToDoListAppTests: XCTestCase {
+    
+    // Properties
+    var contentView: ContentView!
+    
+    // Setup
+    override func setUp() {
+        super.setUp()
+        contentView = ContentView()
     }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    
+    override func tearDown() {
+        contentView = nil
+        super.tearDown()
     }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    
+    // Tests
+    func testCreateTask() {
+        let initialTaskCount = contentView.tasks.count
+        let taskName = "Test Task"
+        let dueDate = Date()
+        
+        contentView.newTaskName = taskName
+        contentView.newTaskDueDateTime = dueDate
+        
+        contentView.addTask()
+        
+        XCTAssertEqual(contentView.tasks.count, initialTaskCount + 1)
+        XCTAssertEqual(contentView.tasks.last?.name, taskName)
+        XCTAssertEqual(contentView.tasks.last?.dueDate, dueDate)
     }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    
+    func testToggleTaskCompletion() {
+        let task = Task(name: "Test Task", dueDate: Date())
+        contentView.tasks.append(task)
+        
+        let initialCompletedState = task.isCompleted
+        contentView.toggleTaskCompletion(task)
+        
+        XCTAssertEqual(task.isCompleted, !initialCompletedState)
     }
-
+    
+    func testDeleteTask() {
+        let task = Task(name: "Test Task", dueDate: Date())
+        contentView.tasks.append(task)
+        
+        let initialTaskCount = contentView.tasks.count
+        contentView.toggleTaskCompletion(task)
+        
+        XCTAssertEqual(contentView.tasks.count, initialTaskCount - 1)
+    }
 }

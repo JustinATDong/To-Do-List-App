@@ -9,10 +9,20 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var tasks: [Task] = []
-    @State private var newTaskName = ""
-    @State private var newTaskDueDateTime = Date()
+    @State var tasks: [Task] = []
+    @State var newTaskName = ""
+    @State var newTaskDueDateTime = Date()
 
+    // Used for testing purposes only
+    func addTask() {
+            // Add a new task
+            let task = Task(name: newTaskName, dueDate: newTaskDueDateTime)
+            tasks.append(task)
+            // Reset fields
+            newTaskName = ""
+            newTaskDueDateTime = Date()
+    }
+    
     var body: some View {
         VStack {
             Text("CasualTasks")
@@ -57,7 +67,7 @@ struct ContentView: View {
             .padding()
         }
     }
-
+    
     func toggleTaskCompletion(_ task: Task) {
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index].isCompleted.toggle()
